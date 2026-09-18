@@ -1,7 +1,9 @@
 import * as React from "react";
+import { motion } from "motion/react";
 import { Input } from "@/modules/core/components/ui/Input";
 import { Label } from "@/modules/core/components/ui/Label";
 import { Button } from "@/modules/core/components/ui/Button";
+import { Eye, EyeOff } from "lucide-react";
 
 interface LoginFormProps {
   cedula: string;
@@ -22,8 +24,24 @@ export function LoginForm({
   onClaveChange,
   onSubmit,
 }: LoginFormProps) {
+  const [showPassword, setShowPassword] = React.useState(false);
+
   return (
-    <div className="glass-card w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 relative overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        // Animación de shake si hay error
+        x: error ? [-10, 10, -8, 8, -5, 5, 0] : 0 
+      }}
+      transition={{ 
+        duration: 0.4,
+        x: { type: "spring", stiffness: 400, damping: 10 }
+      }}
+      className={`glass-card w-full max-w-md p-8 rounded-2xl flex flex-col gap-6 relative overflow-hidden transition-shadow ${error ? "border-destructive/50 shadow-[0_0_20px_rgba(255,0,0,0.1)]" : ""}`}
+    >
       {/* Decoración Neumórfica sutil de fondo dentro de la tarjeta */}
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
       
@@ -53,21 +71,37 @@ export function LoginForm({
           <div className="flex items-center justify-between">
             <Label htmlFor="clave">Contraseña</Label>
           </div>
-          <Input
-            id="clave"
-            type="password"
-            value={clave}
-            onChange={(e) => onClaveChange(e.target.value)}
-            disabled={isLoading}
-            required
-            autoComplete="current-password"
-          />
+          <div className="relative">
+            <Input
+              id="clave"
+              type={showPassword ? "text" : "password"}
+              value={clave}
+              onChange={(e) => onClaveChange(e.target.value)}
+              disabled={isLoading}
+              required
+              autoComplete="current-password"
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         {error && (
-          <p className="text-sm font-medium text-destructive mt-1 text-center bg-destructive/10 p-2 rounded-md">
+          <motion.p 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="text-sm font-medium text-destructive mt-1 text-center bg-destructive/10 p-2 rounded-md"
+          >
             {error}
-          </p>
+          </motion.p>
         )}
 
         <Button
@@ -79,6 +113,6 @@ export function LoginForm({
           {isLoading ? "Validando..." : "Ingresar al Workspace"}
         </Button>
       </form>
-    </div>
+    </motion.div>
   );
 }

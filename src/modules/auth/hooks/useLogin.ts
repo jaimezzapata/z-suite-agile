@@ -1,44 +1,62 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/modules/core/lib/supabase/client";
 
 export function useLogin() {
+  const router = useRouter();
   const [cedula, setCedula] = useState("");
   const [clave, setClave] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Generar un random en el error permite que el React Effect se vuelva a disparar 
+    // y la tarjeta tiemble siempre que haya un error, incluso si es el mismo texto.
     setError(null);
 
-    // Validación básica sincrónica
     if (!cedula.trim() || !clave.trim()) {
-      setError("Por favor, completa todos los campos.");
+      setError("Por favor, completa todos los campos. " + Date.now()); // Date.now() oculto para forzar cambio de ref
       return;
     }
 
     if (!/^\d+$/.test(cedula)) {
-      setError("La cédula debe contener únicamente números.");
+      setError("La cédula debe contener únicamente números. " + Date.now());
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // MOCK: Aquí irá la llamada real a la Server Action de Supabase
-      // que construirá el correo "[cedula]@zsuite.local".
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Simular un error si la cédula es 123 (para que el usuario lo vea)
-      if (cedula === "123") {
-        throw new Error("Credenciales inválidas.");
+      const phantomEmail = `${cedula}@zsuite.local`;
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: phantomEmail,
+        password: clave,
+      });
+
+      if (authError) {
+        throw new Error("Credenciales inválidas o usuario no registrado.");
       }
 
-      console.log("Login exitoso simulado para:", cedula);
-      // Redirigiríamos al dashboard
-      // router.push("/dashboard")
+      console.log("Login exitoso real para:", data.user?.id);
+      
+      // Activar la animación de éxito
+      setIsSuccess(true);
+      
+      // Esperar 2 segundos para que se aprecie la animación antes de redirigir
+      setTimeout(() => {
+        router.push("/dashboard"); // Cambiaremos esto cuando el dashboard exista
+      }, 2000);
       
     } catch (err: any) {
-      setError(err.message || "Ocurrió un error al intentar iniciar sesión.");
+      // Limpiamos el texto del error de la marca de tiempo visual
+      const msg = err.message || "Ocurrió un error al intentar iniciar sesión.";
+      setError(msg + "___" + Date.now()); // Hack para forzar el cambio de estado y re-animar
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +68,8 @@ export function useLogin() {
     clave,
     setClave,
     isLoading,
-    error,
+    error: error ? error.split("___")[0].replace(/\d{13}$/, "").trim() : null, // Limpiamos el timestamp al exponerlo
+    isSuccess,
     handleLogin,
   };
 }
