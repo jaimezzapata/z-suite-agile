@@ -29,3 +29,43 @@ El proyecto sigue estrictamente los principios SOLID (énfasis en SRP) y Screami
 4. **Kanban**: Auditoría de QA. Las tareas devueltas a "En Progreso" exigen tipificación del motivo (lista fija). La reincidencia por el mismo motivo dispara una penalización automática.
 5. **Evaluación Dual**: El sistema calcula de forma automatizada un 30% correspondiente al entregable técnico grupal (asignado al proyecto) y un 70% de gestión operativa individual (arranca en 5.0 y resta puntos automáticamente por penalizaciones de WorkManager y QA).
 6. **Optimización de Assets**: Las fotos de perfil de los usuarios se comprimen obligatoriamente a <200KB en el cliente (navegador) antes de ser enviadas a Supabase Storage.
+
+
+# Z-Suite: Documento Maestro de Requisitos y Lógica de Negocio
+
+Este documento contiene el levantamiento de requisitos, las reglas de negocio y la lógica operativa de Z-Suite. La IA debe basar toda la lógica de los módulos en estas directrices.
+
+## 1. Visión General y Modularidad
+- **Objetivo:** Plataforma SaaS para gestionar hasta 200 estudiantes/desarrolladores no concurrentes, combinando control de tiempo, Kanban y evaluación académica.
+- **Modularidad (Feature Flags):** Los módulos se encienden/apagan por proyecto desde la base de datos (`usa_asistencia`, `usa_kanban`, `usa_evaluacion`). Permite usar el sistema a futuro para proyectos freelance puros.
+
+## 2. Autenticación y Perfil de Usuario
+- **Login:** Únicamente Cédula y Clave (sin registro público).
+- **Mecanismo Backend:** Se usa un correo fantasma (`[cedula]@zsuite.local`) para conectar con Supabase Auth.
+- **Perfiles:** Panel de estudiante con foto de avatar. 
+- **Regla Técnica de Storage:** Toda foto subida debe comprimirse en el cliente (navegador) usando `browser-image-compression` a un máximo de ~200KB antes de enviarse a Supabase Storage.
+
+## 3. Módulo WorkManager (Control Operativo y Antifraude)
+- **Marcaciones Permitidas:** Solo `ingreso_jornada` y `regreso_break` (no se requiere checkout explícito de salida).
+- **Tolerancia de Retraso:** Límite de 15 minutos acumulados diarios permitidos antes de aplicar penalización.
+- **Mecánica Antifraude (Bloqueo):** Si un usuario cierra sesión o se desconecta, se activa un "cooldown" (bloqueo) de 15 minutos donde el sistema no le permite volver a marcar ingreso.
+- **Justificaciones de Caídas:** Límite máximo de 3 desconexiones justificadas por usuario en el proyecto. La 4ta desconexión aplica penalización automática.
+- **Fuente de Verdad:** Todas las marcaciones de tiempo usan el timestamp del servidor de PostgreSQL, nunca la hora del dispositivo del cliente.
+
+## 4. Módulo Kanban (Flujo Ágil y Auditoría)
+- **Columnas Fijas:** Por Hacer -> En Progreso -> QA -> Terminado.
+- **Rol de Aprobación:** Solo el Administrador (Profesor/Líder) puede pasar una historia a "Terminado" o devolverla.
+- **Auditoría de QA y Rechazos:**
+  - Si una tarea no cumple, el Admin la devuelve a "En Progreso" seleccionando un motivo de rechazo de una lista de categorías fijas.
+  - El primer rechazo NO penaliza (fomenta el aprendizaje).
+  - **Regla de Penalización Kanban:** Solo se aplica penalización si la historia es devuelta por *el mismo motivo* categórico en un segundo intento (falla de atención al detalle).
+
+## 5. Módulo de Evaluación (Motor de Calificaciones)
+- **Distribución de la Nota Final:** 70% Individual (Gestión/Disciplina) + 30% Grupal (Entregables técnicos).
+- **Cálculo Grupal (30%):** Se divide en 3 entregables de igual peso (33.3% cada uno) evaluados por el Admin al equipo.
+- **Cálculo Individual (70%):** Inicia siempre en la nota máxima (5.0).
+- **Sistema de Descuentos Automáticos:** La nota individual baja automáticamente en tiempo real mediante un motor de penalizaciones si el estudiante:
+  - Supera los 15 min de retraso diario (WorkManager).
+  - Supera las 3 desconexiones (WorkManager).
+  - Reincide en un mismo error de QA (Kanban).
+- **Dashboard:** El estudiante ve sus métricas en tiempo real y tiene un sistema de buzón de mensajes directos para apelar o comunicarse con el Admin.
