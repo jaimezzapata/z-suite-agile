@@ -1,8 +1,6 @@
-import type { profiles, work_sessions } from "@prisma/client";
 import { Button } from "@/modules/core/components/ui/Button";
 import { Trash2, RotateCcw, Clock, Coffee } from "lucide-react";
-
-type StudentProfile = profiles & { work_sessions?: work_sessions[] };
+import type { StudentProfile } from "@/modules/projects/types";
 
 interface StudentsTableProps {
   students: StudentProfile[];

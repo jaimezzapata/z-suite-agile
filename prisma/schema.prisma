@@ -576,12 +576,12 @@ model profiles {
   apellidos             String             @db.VarChar(100)
   avatar_url            String?
   rol                   String?            @default("student") @db.VarChar(50)
-  terminos_aceptados_at DateTime?          @db.Timestamptz(6)
   created_at            DateTime           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   updated_at            DateTime           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  terminos_aceptados_at DateTime?          @db.Timestamptz(6)
+  group_members         group_members[]
   users                 users              @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   subgroup_members      subgroup_members[]
-  group_members         group_members[]
   work_sessions         work_sessions[]
 
   @@schema("public")
@@ -599,8 +599,8 @@ model groups {
   estado         String?         @default("activo") @db.VarChar(50)
   created_at     DateTime        @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   updated_at     DateTime        @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  projects       projects[]
   members        group_members[]
+  projects       projects[]
 
   @@schema("public")
 }
@@ -610,9 +610,8 @@ model group_members {
   group_id   String   @db.Uuid
   user_id    String   @db.Uuid
   created_at DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-
-  groups   groups   @relation(fields: [group_id], references: [id], onDelete: Cascade)
-  profiles profiles @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  groups     groups   @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  profiles   profiles @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([group_id, user_id])
   @@schema("public")
@@ -620,12 +619,12 @@ model group_members {
 
 model projects {
   id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  group_id      String          @db.Uuid
   nombre        String          @db.VarChar(255)
   descripcion   String?
   estado        String?         @default("activo") @db.VarChar(50)
   created_at    DateTime        @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   updated_at    DateTime        @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  group_id      String          @db.Uuid
   groups        groups          @relation(fields: [group_id], references: [id], onDelete: Cascade)
   subgroups     subgroups[]
   work_sessions work_sessions[]
@@ -639,8 +638,8 @@ model subgroups {
   nombre     String             @db.VarChar(255)
   created_at DateTime           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   updated_at DateTime           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  projects   projects           @relation(fields: [project_id], references: [id], onDelete: Cascade)
   members    subgroup_members[]
+  projects   projects           @relation(fields: [project_id], references: [id], onDelete: Cascade)
 
   @@schema("public")
 }
@@ -655,6 +654,21 @@ model subgroup_members {
   profiles      profiles  @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([subgroup_id, user_id])
+  @@schema("public")
+}
+
+model work_sessions {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id            String    @db.Uuid
+  project_id         String?   @db.Uuid
+  ingreso_jornada_at DateTime  @db.Timestamptz(6)
+  inicio_break_at    DateTime? @db.Timestamptz(6)
+  regreso_break_at   DateTime? @db.Timestamptz(6)
+  retraso_minutos    Int       @default(0)
+  created_at         DateTime  @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  projects           projects? @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  profiles           profiles  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
   @@schema("public")
 }
 
@@ -727,23 +741,4 @@ enum one_time_token_type {
   phone_change_token
 
   @@schema("auth")
-}
-
-model work_sessions {
-  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id    String  @db.Uuid
-  project_id String? @db.Uuid
-
-  ingreso_jornada_at DateTime  @db.Timestamptz(6)
-  inicio_break_at    DateTime? @db.Timestamptz(6)
-  regreso_break_at   DateTime? @db.Timestamptz(6)
-
-  retraso_minutos Int @default(0)
-
-  created_at DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-
-  profiles profiles  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  projects projects? @relation(fields: [project_id], references: [id], onDelete: Cascade)
-
-  @@schema("public")
 }
