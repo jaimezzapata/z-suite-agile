@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, UploadCloud, UserPlus, FileText } from "lucide-react";
 import { Button } from "@/modules/core/components/ui/Button";
-import { importStudents, StudentInput } from "../actions/student-actions";
+import { importStudents, StudentInput } from "../actions/import-students-actions";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 

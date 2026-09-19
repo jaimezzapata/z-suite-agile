@@ -2,6 +2,7 @@
 
 import { prisma } from "@/modules/core/lib/prisma";
 import { createClient } from "@/modules/core/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function acceptTermsAndConditions() {
   const supabase = await createClient();
@@ -21,6 +22,7 @@ export async function acceptTermsAndConditions() {
       } as any // casteado a any temporalmente si Prisma Client no ha actualizado sus tipos localmente
     });
 
+    revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
     console.error("Error aceptando términos:", error);

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { createClient } from "@/modules/core/lib/supabase/client";
 import { getStudentDashboardData } from "../actions/student-dashboard-actions";
 import { getCurrentWorkSession, startWorkday, endBreak } from "../actions/work-actions";
 
@@ -13,31 +14,56 @@ export function useStudentDashboard() {
   } | null>(null);
   
   const [workSession, setWorkSession] = useState<any>(null);
+  const [dailySession, setDailySession] = useState<any>(null);
+  const [dailyStatus, setDailyStatus] = useState<string>("no_iniciado");
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  const loadWorkSession = async () => {
+  const loadWorkSession = useCallback(async () => {
     const wsResult = await getCurrentWorkSession();
-    if (wsResult.success) {
-      setWorkSession(wsResult.data);
+    if (wsResult.success && wsResult.data) {
+      setWorkSession(wsResult.data.workSession ?? null);
+      setDailySession(wsResult.data.dailySession ?? null);
+      setDailyStatus(wsResult.data.dailyStatus ?? "no_iniciado");
+    } else {
+      setWorkSession(null);
+      setDailySession(null);
     }
-  };
+  }, []);
+
+  const loadAll = useCallback(async () => {
+    const result = await getStudentDashboardData();
+    if (result.success && result.data) {
+      setStudentData(result.data as any);
+      setShowTermsModal(!result.data.terminos_aceptados_at);
+    }
+    await loadWorkSession();
+    setIsLoading(false);
+  }, [loadWorkSession]);
 
   useEffect(() => {
-    async function loadData() {
-      const result = await getStudentDashboardData();
-      if (result.success && result.data) {
-        setStudentData(result.data as any);
-        if (!result.data.terminos_aceptados_at) {
-          setShowTermsModal(true);
-        }
-      }
-      await loadWorkSession();
-      setIsLoading(false);
-    }
-    loadData();
-  }, []);
+    loadAll();
+
+    const supabase = createClient();
+    const channelId = `student-dashboard-${Math.random().toString(36).substring(7)}`;
+    const channel = supabase
+      .channel(channelId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        loadAll();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'work_sessions' }, () => {
+        loadWorkSession();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'group_daily_sessions' }, () => {
+        loadWorkSession();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadAll, loadWorkSession]);
 
   const handleStartWorkday = async () => {
     setIsActionLoading(true);
@@ -67,6 +93,8 @@ export function useStudentDashboard() {
     state: {
       studentData,
       workSession,
+      dailySession,
+      dailyStatus,
       isLoading,
       isActionLoading,
       showTermsModal,

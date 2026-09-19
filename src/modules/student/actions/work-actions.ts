@@ -3,47 +3,73 @@
 import { prisma } from "@/modules/core/lib/prisma";
 import { createClient } from "@/modules/core/lib/supabase/server";
 
-// Obtener la sesión actual de trabajo del día
+const getTodayDate = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+};
+
+async function getStudentDailySession(userId: string) {
+  const member = await prisma.group_members.findFirst({
+    where: { user_id: userId },
+    select: { group_id: true }
+  });
+  if (!member) return null;
+  return prisma.group_daily_sessions.findUnique({
+    where: { group_id_fecha: { group_id: member.group_id, fecha: getTodayDate() } },
+  });
+}
+
 export async function getCurrentWorkSession() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) return { success: false, error: "No autenticado" };
 
-  // Buscar una sesión iniciada hoy (esto es simplificado, en un sistema real se usa timezone)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   try {
+    const today = getTodayDate();
     const session = await prisma.work_sessions.findFirst({
-      where: {
-        user_id: user.id,
-        created_at: {
-          gte: today,
-        }
-      },
+      where: { user_id: user.id, created_at: { gte: today } },
       orderBy: { created_at: 'desc' }
     });
-
-    return { success: true, data: session };
+    const dailySession = await getStudentDailySession(user.id);
+    return { 
+      success: true, 
+      data: { workSession: session, dailySession, dailyStatus: dailySession ? dailySession.estado : "no_iniciado" }
+    };
   } catch (error) {
     console.error("Error getting work session:", error);
     return { success: false, error: "Error al obtener la sesión de trabajo" };
   }
 }
 
-// Iniciar Jornada
 export async function startWorkday() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "No autenticado" };
 
   try {
+    const today = getTodayDate();
+    const dailySession = await getStudentDailySession(user.id);
+    if (!dailySession || dailySession.estado === "no_iniciado") return { success: false, error: "La jornada no ha sido habilitada." };
+    if (dailySession.estado === "finalizado") return { success: false, error: "La jornada ya ha sido finalizada." };
+
+    const existing = await prisma.work_sessions.findFirst({ where: { user_id: user.id, created_at: { gte: today } } });
+    if (existing) return { success: false, error: "Ya registraste tu ingreso hoy." };
+
+    const now = new Date();
+    if (dailySession.hora_inicio_programada && now.getTime() < new Date(dailySession.hora_inicio_programada).getTime()) {
+      const horaStr = new Date(dailySession.hora_inicio_programada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return { success: false, error: `La jornada inicia a las ${horaStr}. No puedes marcar entrada antes de la hora definida.` };
+    }
+
+    const horaEsp = dailySession.hora_inicio_programada || dailySession.iniciado_at;
+    let retraso = 0;
+    if (horaEsp && now.getTime() > new Date(horaEsp).getTime()) {
+      retraso = Math.max(0, Math.floor((now.getTime() - new Date(horaEsp).getTime()) / 60000));
+    }
+
     const session = await prisma.work_sessions.create({
-      data: {
-        user_id: user.id,
-        ingreso_jornada_at: new Date(),
-      }
+      data: { user_id: user.id, ingreso_jornada_at: now, retraso_ingreso_minutos: retraso, retraso_minutos: retraso }
     });
     return { success: true, data: session };
   } catch (error) {
@@ -52,58 +78,58 @@ export async function startWorkday() {
   }
 }
 
-// Iniciar Break
 export async function startBreak() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "No autenticado" };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   try {
-    const activeSession = await prisma.work_sessions.findFirst({
+    const today = getTodayDate();
+    const active = await prisma.work_sessions.findFirst({
       where: { user_id: user.id, created_at: { gte: today } },
       orderBy: { created_at: 'desc' }
     });
-
-    if (!activeSession) return { success: false, error: "No hay jornada activa" };
+    if (!active) return { success: false, error: "No hay jornada activa" };
 
     const session = await prisma.work_sessions.update({
-      where: { id: activeSession.id },
+      where: { id: active.id },
       data: { inicio_break_at: new Date() }
     });
     return { success: true, data: session };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Error al iniciar break" };
   }
 }
 
-// Regresar del Break
 export async function endBreak() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "No autenticado" };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   try {
-    const activeSession = await prisma.work_sessions.findFirst({
+    const today = getTodayDate();
+    const daily = await getStudentDailySession(user.id);
+    if (daily?.estado === "finalizado") return { success: false, error: "La jornada ya ha sido finalizada." };
+
+    const active = await prisma.work_sessions.findFirst({
       where: { user_id: user.id, created_at: { gte: today } },
       orderBy: { created_at: 'desc' }
     });
+    if (!active || !active.inicio_break_at) return { success: false, error: "No hay break activo para retornar" };
 
-    if (!activeSession || !activeSession.inicio_break_at) {
-      return { success: false, error: "No hay break activo" };
+    const now = new Date();
+    let retrasoBreak = 0;
+    if (daily?.break_fin_esperado_at && now.getTime() > new Date(daily.break_fin_esperado_at).getTime()) {
+      retrasoBreak = Math.max(0, Math.floor((now.getTime() - new Date(daily.break_fin_esperado_at).getTime()) / 60000));
     }
+    const total = (active.retraso_ingreso_minutos || 0) + retrasoBreak;
 
     const session = await prisma.work_sessions.update({
-      where: { id: activeSession.id },
-      data: { regreso_break_at: new Date() }
+      where: { id: active.id },
+      data: { regreso_break_at: now, retraso_break_minutos: retrasoBreak, retraso_minutos: total }
     });
     return { success: true, data: session };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Error al regresar del break" };
   }
 }

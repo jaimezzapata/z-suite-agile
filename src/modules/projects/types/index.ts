@@ -20,5 +20,9 @@ export interface WorkSession {
   id: string;
   ingreso_jornada_at: Date | string;
   inicio_break_at?: Date | string | null;
+  regreso_break_at?: Date | string | null;
+  retraso_ingreso_minutos?: number;
+  retraso_break_minutos?: number;
+  retraso_minutos?: number;
   [key: string]: unknown;
 }

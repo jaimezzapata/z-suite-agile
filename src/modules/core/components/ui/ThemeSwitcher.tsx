@@ -90,22 +90,26 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <div className="relative flex items-center gap-2 glass p-2 rounded-full w-fit z-[100]" ref={containerRef}>
-      <Button variant="ghost" size="icon" onClick={toggleDarkMode} title="Cambiar modo oscuro" className="rounded-full">
-        {theme === "dark" ? <Sun className="h-5 w-5 transition-all" /> : <Moon className="h-5 w-5 transition-all" />}
-      </Button>
-      
-      <div className="w-[1px] h-6 bg-foreground/20 mx-1" />
-
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={() => setShowPalette(!showPalette)} 
-        title="Seleccionar color" 
-        className={`rounded-full transition-colors ${showPalette ? "bg-accent" : ""}`}
+    <div className="relative flex items-center bg-secondary/50 p-1 rounded-full border border-border/50 backdrop-blur-md" ref={containerRef}>
+      <button 
+        type="button"
+        onClick={toggleDarkMode} 
+        title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+        className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors"
       >
-        <Palette className="h-5 w-5 text-primary" />
-      </Button>
+        {theme === "dark" ? <Sun size={15} className="transition-all" /> : <Moon size={15} className="transition-all" />}
+      </button>
+      
+      <div className="w-[1px] h-3.5 bg-border mx-0.5" />
+
+      <button 
+        type="button"
+        onClick={() => setShowPalette(!showPalette)} 
+        title="Seleccionar paleta de colores" 
+        className={`w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors ${showPalette ? "bg-background text-primary shadow-xs" : ""}`}
+      >
+        <Palette size={15} className="text-primary" />
+      </button>
 
       {/* Menú Desplegable Manual (Popover) para Colores */}
       {showPalette && (

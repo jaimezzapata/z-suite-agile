@@ -8,8 +8,8 @@ export function PatternSwitcher() {
   const { pattern, setPattern } = useDesignPattern();
 
   const patterns: { id: DesignPattern; icon: React.ReactNode; label: string }[] = [
-    { id: "minimalism", icon: <Square size={16} />, label: "Minimalism" },
-    { id: "neumorphism", icon: <LayoutTemplate size={16} />, label: "Neumorphism" },
+    { id: "minimalism", icon: <Square size={13} />, label: "Minimalism" },
+    { id: "neumorphism", icon: <LayoutTemplate size={13} />, label: "Neumorphism" },
   ];
 
   return (
@@ -20,7 +20,7 @@ export function PatternSwitcher() {
           <button
             key={p.id}
             onClick={() => setPattern(p.id)}
-            className={`relative flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors z-10 ${
+            className={`relative flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors z-10 ${
               isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
             title={p.label}
@@ -28,7 +28,7 @@ export function PatternSwitcher() {
             {isActive && (
               <motion.div
                 layoutId="pattern-active-pill"
-                className="absolute inset-0 bg-primary rounded-full -z-10 shadow-md"
+                className="absolute inset-0 bg-primary rounded-full -z-10 shadow-xs"
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
               />
             )}
