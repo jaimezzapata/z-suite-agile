@@ -58,9 +58,9 @@
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.75rem;
 
-  /* Neumorphism Shadows - Light (Enhanced for better visibility) */
-  --shadow-neu-flat: 8px 8px 16px #d1d5db, -8px -8px 16px #ffffff;
-  --shadow-neu-pressed: inset 6px 6px 12px #d1d5db, inset -6px -6px 12px #ffffff;
+  /* Neumorphism Shadows - Light (EXTREME) */
+  --shadow-neu-flat: 12px 12px 24px #c8cdd4, -12px -12px 24px #ffffff;
+  --shadow-neu-pressed: inset 8px 8px 16px #c8cdd4, inset -8px -8px 16px #ffffff;
 }
 
 /* Dark Mode Defaults */
@@ -88,9 +88,9 @@
   --input: 240 3.7% 25%;
   --ring: 224.3 76.3% 48%;
 
-  /* Neumorphism Shadows - Dark (Enhanced) */
-  --shadow-neu-flat: 8px 8px 16px #070707, -8px -8px 16px #151515;
-  --shadow-neu-pressed: inset 6px 6px 12px #070707, inset -6px -6px 12px #151515;
+  /* Neumorphism Shadows - Dark (EXTREME) */
+  --shadow-neu-flat: 12px 12px 24px #000000, -12px -12px 24px #1a1a1a;
+  --shadow-neu-pressed: inset 8px 8px 16px #000000, inset -8px -8px 16px #1a1a1a;
 }
 
 /* Dynamic Themes (Colors) - 10 Variations */
@@ -157,45 +157,49 @@ body {
   mix-blend-mode: normal;
 }
 
-/* Glassmorphism Utilities - Mejorados para mayor visibilidad */
+/* Glassmorphism Utilities - EXTREME */
 .glass {
-  background-color: color-mix(in srgb, var(--color-background) 65%, transparent);
-  backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--color-foreground) 15%, transparent);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .glass-card {
-  background-color: color-mix(in srgb, var(--color-background) 75%, color-mix(in srgb, var(--color-foreground) 2%, transparent));
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid color-mix(in srgb, var(--color-foreground) 10%, transparent);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-background) 30%, transparent);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid color-mix(in srgb, var(--color-foreground) 20%, transparent);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 0 0 1px color-mix(in srgb, var(--color-foreground) 10%, transparent);
 }
 
 .dark .glass-card {
-  background-color: color-mix(in srgb, var(--color-background) 65%, color-mix(in srgb, var(--color-foreground) 5%, transparent));
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: color-mix(in srgb, var(--color-background) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-foreground) 15%, transparent);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255,255,255,0.05);
 }
 
-/* Neumorphism Utilities - Ajustados */
+/* Neumorphism Utilities - EXTREME (Debe tener el mismo color que el fondo) */
 .neu-flat {
   box-shadow: var(--shadow-neu-flat);
   transition: all 0.2s ease;
-  background-color: color-mix(in srgb, var(--color-background) 95%, var(--color-foreground) 5%);
+  background-color: var(--color-background);
+  border: none; /* Neumorfismo puro no usa bordes */
 }
 
 .neu-flat:hover {
-  transform: translateY(-1px);
-  box-shadow: 10px 10px 20px color-mix(in srgb, var(--shadow-neu-flat) 100%, black 10%), -10px -10px 20px color-mix(in srgb, var(--shadow-neu-flat) 100%, white 10%);
+  transform: translateY(-2px);
+  box-shadow: 16px 16px 32px color-mix(in srgb, var(--shadow-neu-flat) 100%, black 15%), -16px -16px 32px color-mix(in srgb, var(--shadow-neu-flat) 100%, white 15%);
 }
 
 .neu-flat:active {
-  transform: translateY(1px);
+  transform: translateY(2px);
   box-shadow: var(--shadow-neu-pressed);
 }
 
 .neu-pressed {
   box-shadow: var(--shadow-neu-pressed);
   background-color: var(--color-background);
+  border: none;
 }

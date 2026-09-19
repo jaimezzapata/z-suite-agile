@@ -90,7 +90,7 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <div className="relative flex items-center gap-2 glass p-2 rounded-full w-fit" ref={containerRef}>
+    <div className="relative flex items-center gap-2 glass p-2 rounded-full w-fit z-[100]" ref={containerRef}>
       <Button variant="ghost" size="icon" onClick={toggleDarkMode} title="Cambiar modo oscuro" className="rounded-full">
         {theme === "dark" ? <Sun className="h-5 w-5 transition-all" /> : <Moon className="h-5 w-5 transition-all" />}
       </Button>
@@ -109,7 +109,7 @@ export function ThemeSwitcher() {
 
       {/* Menú Desplegable Manual (Popover) para Colores */}
       {showPalette && (
-        <div className="absolute top-full right-0 mt-3 p-4 glass-card rounded-2xl flex flex-wrap gap-3 w-56 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="absolute top-full right-0 mt-3 p-4 bg-popover text-popover-foreground border shadow-xl rounded-2xl flex flex-wrap gap-3 w-56 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
           <p className="w-full text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
             Paleta de Acentos
           </p>
