@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/modules/core/lib/supabase/client";
+import { useRole } from "@/modules/core/contexts/RoleProvider";
 
 export function useLogin() {
   const router = useRouter();
+  const { setRealRole } = useRole();
   const [cedula, setCedula] = useState("");
   const [clave, setClave] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,11 +41,22 @@ export function useLogin() {
         password: clave,
       });
 
-      if (authError) {
+      if (authError || !data.user) {
         throw new Error("Credenciales inválidas o usuario no registrado.");
       }
 
-      console.log("Login exitoso real para:", data.user?.id);
+      console.log("Login exitoso real para:", data.user.id);
+      
+      // Ir a buscar el rol a la tabla profiles
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('rol')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!profileError && profile?.rol) {
+        setRealRole(profile.rol as "admin" | "student");
+      }
       
       // Activar la animación de éxito
       setIsSuccess(true);

@@ -7,7 +7,7 @@ import { Button } from "@/modules/core/components/ui/Button";
 import { GroupCard } from "../components/GroupCard";
 import { GroupForm } from "../components/GroupForm";
 import { createGroup, CreateGroupInput } from "../actions/project-actions";
-import { groups } from "@prisma/client";
+import type { groups } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
 interface GroupsScreenProps {

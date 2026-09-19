@@ -64,8 +64,8 @@ export function ConfirmDialog({
                 {cancelText}
               </Button>
               <Button 
-                variant={isDestructive ? "destructive" : "default"} 
-                className="w-full" 
+                variant="solid" 
+                className={`w-full ${isDestructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}`} 
                 onClick={onConfirm} 
                 disabled={isLoading}
               >

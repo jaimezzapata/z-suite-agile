@@ -3,7 +3,7 @@
 import * as React from "react";
 import { DynamicCard } from "@/modules/core/components/ui/DynamicCard";
 import { Users, Clock, CheckSquare, BarChart } from "lucide-react";
-import { groups } from "@prisma/client";
+import type { groups } from "@prisma/client";
 import Link from "next/link";
 
 interface GroupCardProps {

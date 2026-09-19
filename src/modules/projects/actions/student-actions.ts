@@ -116,13 +116,20 @@ export async function getGroupStudents(groupId: string) {
     const members = await prisma.group_members.findMany({
       where: { group_id: groupId },
       include: {
-        profiles: true,
+        profiles: {
+          include: {
+            work_sessions: {
+              orderBy: { created_at: "desc" },
+              take: 1,
+            }
+          }
+        },
       },
       orderBy: { created_at: "desc" },
     });
     
     // Retornamos directamente los perfiles para facilitar el renderizado
-    const students = members.map(m => m.profiles);
+    const students = members.map((m: any) => m.profiles);
     return { success: true, students };
   } catch (error: any) {
     console.error("Error fetching group students:", error);
@@ -132,17 +139,37 @@ export async function getGroupStudents(groupId: string) {
 
 export async function removeGroupMembers(groupId: string, userIds: string[]) {
   try {
-    await prisma.group_members.deleteMany({
-      where: {
-        group_id: groupId,
-        user_id: { in: userIds }
-      }
-    });
+    // Para eliminar todo el registro del estudiante (incluyendo Auth y cascada a perfiles/sesiones)
+    for (const userId of userIds) {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+    }
 
     revalidatePath(`/dashboard/grupos/${groupId}`);
     return { success: true };
   } catch (error: any) {
-    console.error("Error eliminando estudiantes:", error);
-    return { success: false, error: "No se pudieron eliminar los estudiantes seleccionados." };
+    console.error("Error eliminando estudiantes completamente:", error);
+    return { success: false, error: "No se pudieron eliminar todos los datos de los estudiantes seleccionados." };
+  }
+}
+
+export async function resetStudentData(userId: string) {
+  try {
+    // 1. Limpiar aceptación de términos
+    await prisma.profiles.update({
+      where: { id: userId },
+      data: { terminos_aceptados_at: null } as any
+    });
+
+    // 2. Eliminar todas las sesiones de trabajo (WorkManager)
+    await prisma.work_sessions.deleteMany({
+      where: { user_id: userId }
+    });
+
+    // Si a futuro hay entregables o penalizaciones de kanban, se borrarán aquí.
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error restableciendo estudiante:", error);
+    return { success: false, error: "No se pudo restablecer el estudiante de fábrica." };
   }
 }

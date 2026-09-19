@@ -5,12 +5,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PatternSwitcher } from "@/modules/core/components/ui/PatternSwitcher";
 import { ThemeSwitcher } from "@/modules/core/components/ui/ThemeSwitcher";
-import { LayoutDashboard, CheckSquare, BarChart, Users, Clock, LogOut } from "lucide-react";
+import { LayoutDashboard, CheckSquare, BarChart, Users, Clock, LogOut, GraduationCap, ArrowRightLeft } from "lucide-react";
 import { useDesignPattern } from "@/modules/core/contexts/DesignPatternProvider";
+import { useRole } from "@/modules/core/contexts/RoleProvider";
 import { Toaster } from "sonner";
+import { createClient } from "@/modules/core/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { pattern } = useDesignPattern();
+  const { role, setRole, realRole } = useRole();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    
+    // Limpiar roles mockeados
+    localStorage.removeItem("zsuite_real_role");
+    localStorage.removeItem("zsuite_view_role");
+    
+    router.push("/login");
+  };
 
   return (
     <div className="min-h-screen flex bg-background text-foreground transition-colors">
@@ -21,26 +37,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-1">Workspace</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <NavItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Inicio (Resumen)" />
-          <NavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Mis Grupos" />
-          <div className="pt-4 pb-2">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Módulos</p>
-          </div>
-          <NavItem href="/dashboard/workmanager" icon={<Clock size={18} />} label="WorkManager" />
-          <NavItem href="/dashboard/kanban" icon={<CheckSquare size={18} />} label="Kanban (QA)" />
-          <NavItem href="/dashboard/evaluaciones" icon={<BarChart size={18} />} label="Evaluaciones" />
+          {role === "admin" ? (
+            <>
+              <NavItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Inicio (Resumen)" />
+              <NavItem href="/dashboard/grupos" icon={<Users size={18} />} label="Mis Grupos" />
+              <div className="pt-4 pb-2">
+                <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Módulos</p>
+              </div>
+              <NavItem href="/dashboard/workmanager" icon={<Clock size={18} />} label="WorkManager" />
+              <NavItem href="/dashboard/kanban" icon={<CheckSquare size={18} />} label="Kanban (QA)" />
+              <NavItem href="/dashboard/evaluaciones" icon={<BarChart size={18} />} label="Evaluaciones" />
+            </>
+          ) : (
+            <>
+              <NavItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Mi Panel" />
+              <div className="pt-4 pb-2">
+                <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estudiante</p>
+              </div>
+              <NavItem href="/dashboard/mis-entregables" icon={<CheckSquare size={18} />} label="Mis Entregables" />
+              <NavItem href="/dashboard/asistencia" icon={<Clock size={18} />} label="Mi Asistencia" />
+            </>
+          )}
         </nav>
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold">
-              JZ
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-blue-500/20 text-blue-500'}`}>
+              {role === 'admin' ? 'JZ' : 'ES'}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold leading-none">Jaime Zapata</span>
-              <span className="text-xs text-muted-foreground mt-1">Admin</span>
+              <span className="text-sm font-semibold leading-none">{role === 'admin' ? 'Jaime Zapata' : 'Estudiante Demo'}</span>
+              <span className="text-xs text-muted-foreground mt-1 capitalize">{role}</span>
             </div>
           </div>
-          <button className="flex w-full items-center gap-2 px-2 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-md transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="flex w-full items-center gap-2 px-2 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+          >
             <LogOut size={16} /> Cerrar Sesión
           </button>
         </div>
@@ -53,7 +85,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center md:hidden">
             <h1 className="font-extrabold text-xl">Z-Suite</h1>
           </div>
-          <div className="flex-1" />
+          <div className="flex-1 flex justify-center md:justify-start">
+            {/* DEV TOOL: Role Switcher - SOLO VISIBLE PARA ADMINS REALES */}
+            {realRole === "admin" && (
+              <button 
+                onClick={() => setRole(role === 'admin' ? 'student' : 'admin')}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-secondary/50 hover:bg-secondary text-sm font-semibold rounded-full border border-border transition-colors animate-pulse hover:animate-none"
+                title="Cambiar vista temporalmente para desarrollo"
+              >
+                <ArrowRightLeft size={14} />
+                Viendo como: <span className={role === 'admin' ? 'text-primary' : 'text-blue-500 capitalize'}>{role}</span>
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             {/* Controles de Tematización Arquitectónica */}
             <PatternSwitcher />
