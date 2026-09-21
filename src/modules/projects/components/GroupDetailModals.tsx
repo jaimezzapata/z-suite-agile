@@ -3,8 +3,6 @@
 import React from "react";
 import { ImportStudentsModal } from "./ImportStudentsModal";
 import { EditStudentModal } from "./EditStudentModal";
-import { StartDayModal } from "./StartDayModal";
-import { SendBreakModal } from "./SendBreakModal";
 import { StudentMessageModal } from "./StudentMessageModal";
 import { ConfirmDialog } from "@/modules/core/components/ui/ConfirmDialog";
 
@@ -32,41 +30,11 @@ interface GroupDetailModalsProps {
     closeMessageModal: () => void;
     refreshStudents: () => Promise<void>;
   };
-  daily: {
-    isStartDayModalOpen: boolean;
-    setIsStartDayModalOpen: (open: boolean) => void;
-    handleStartDay: (hora?: string) => void;
-    isStarting: boolean;
-    isBreakModalOpen: boolean;
-    setIsBreakModalOpen: (open: boolean) => void;
-    handleSendToBreak: (duracion?: number) => void;
-    isSendingBreak: boolean;
-    isFinalizeConfirmOpen: boolean;
-    isFinalizing: boolean;
-    handleFinalizeDay: () => void;
-    setIsFinalizeConfirmOpen: (open: boolean) => void;
-    isResetDayConfirmOpen: boolean;
-    isResettingDay: boolean;
-    handleResetDay: () => void;
-    setIsResetDayConfirmOpen: (open: boolean) => void;
-  };
 }
 
-export function GroupDetailModals({ groupId, state, actions, daily }: GroupDetailModalsProps) {
+export function GroupDetailModals({ groupId, state, actions }: GroupDetailModalsProps) {
   return (
     <>
-      <StartDayModal
-        isOpen={daily.isStartDayModalOpen}
-        onClose={() => daily.setIsStartDayModalOpen(false)}
-        onConfirm={daily.handleStartDay}
-        isLoading={daily.isStarting}
-      />
-      <SendBreakModal
-        isOpen={daily.isBreakModalOpen}
-        onClose={() => daily.setIsBreakModalOpen(false)}
-        onConfirm={daily.handleSendToBreak}
-        isLoading={daily.isSendingBreak}
-      />
       <ImportStudentsModal
         groupId={groupId}
         isOpen={state.isImportModalOpen}
@@ -103,26 +71,6 @@ export function GroupDetailModals({ groupId, state, actions, daily }: GroupDetai
         onConfirm={actions.executeReset}
         onCancel={() => actions.setIsResetConfirmOpen(false)}
         isLoading={state.isResetting}
-      />
-      <ConfirmDialog
-        isOpen={daily.isFinalizeConfirmOpen}
-        title="Finalizar Jornada del Día"
-        description="¿Estás seguro de finalizar la jornada de hoy para todo el grupo? Los estudiantes ya no podrán realizar marcaciones de tiempo."
-        confirmText="Finalizar Día"
-        isDestructive={true}
-        onConfirm={daily.handleFinalizeDay}
-        onCancel={() => daily.setIsFinalizeConfirmOpen(false)}
-        isLoading={daily.isFinalizing}
-      />
-      <ConfirmDialog
-        isOpen={daily.isResetDayConfirmOpen}
-        title="Reiniciar Jornada de Hoy"
-        description="¿Estás seguro de reiniciar la jornada del día? Se borrarán todas las marcaciones de hoy y el día volverá al estado 'No Iniciado'."
-        confirmText="Reiniciar Día"
-        isDestructive={true}
-        onConfirm={daily.handleResetDay}
-        onCancel={() => daily.setIsResetDayConfirmOpen(false)}
-        isLoading={daily.isResettingDay}
       />
     </>
   );

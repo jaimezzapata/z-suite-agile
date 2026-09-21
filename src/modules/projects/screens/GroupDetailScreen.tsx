@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import type { groups, profiles } from "@prisma/client";
+import Link from "next/link";
+import { Clock, ArrowRight } from "lucide-react";
 import { useDesignPattern } from "@/modules/core/contexts/DesignPatternProvider";
 import { useGroupDetail } from "../hooks/useGroupDetail";
-import { useGroupDailySession } from "../hooks/useGroupDailySession";
 import { useGroupProjects } from "../hooks/useGroupProjects";
 import { GroupDetailHeader } from "../components/GroupDetailHeader";
-import { GroupDayControl } from "../components/GroupDayControl";
 import { GroupDetailModals } from "../components/GroupDetailModals";
 import { StudentsTabContent } from "../components/StudentsTabContent";
 import { ProjectsTabContent } from "../components/ProjectsTabContent";
@@ -20,7 +20,6 @@ interface GroupDetailScreenProps {
 export function GroupDetailScreen({ group, students }: GroupDetailScreenProps) {
   const { pattern } = useDesignPattern();
   const { state, actions } = useGroupDetail(group, students);
-  const daily = useGroupDailySession(group.id);
   const projects = useGroupProjects(group.id);
 
   return (
@@ -37,16 +36,21 @@ export function GroupDetailScreen({ group, students }: GroupDetailScreenProps) {
       />
 
       {group.usa_asistencia && (
-        <GroupDayControl
-          dailySession={daily.dailySession}
-          isLoading={daily.isLoading}
-          isStarting={daily.isStarting}
-          isResettingDay={daily.isResettingDay}
-          onRequestStartDay={() => daily.setIsStartDayModalOpen(true)}
-          onRequestBreak={() => daily.setIsBreakModalOpen(true)}
-          onRequestFinalize={() => daily.setIsFinalizeConfirmOpen(true)}
-          onRequestResetDay={() => daily.setIsResetDayConfirmOpen(true)}
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-primary/20 bg-primary/5 text-xs">
+          <div className="flex items-center gap-2.5 text-foreground font-medium">
+            <div className="p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
+              <Clock size={16} />
+            </div>
+            <span>Control de Asistencia y Jornada de Trabajo habilitado para este grupo.</span>
+          </div>
+          <Link
+            href="/dashboard/workmanager"
+            className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+          >
+            <span>Operar en WorkManager</span>
+            <ArrowRight size={13} />
+          </Link>
+        </div>
       )}
 
       <div className="flex gap-6 border-b border-border">
@@ -116,7 +120,7 @@ export function GroupDetailScreen({ group, students }: GroupDetailScreenProps) {
         />
       )}
 
-      <GroupDetailModals groupId={group.id} state={state} actions={actions} daily={daily} />
+      <GroupDetailModals groupId={group.id} state={state} actions={actions} />
     </div>
   );
 }

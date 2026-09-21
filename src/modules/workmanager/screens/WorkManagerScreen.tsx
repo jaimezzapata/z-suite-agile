@@ -5,11 +5,15 @@ import { Clock, Search, RefreshCw, Filter } from "lucide-react";
 import { DynamicCard } from "@/modules/core/components/ui/DynamicCard";
 import { Button } from "@/modules/core/components/ui/Button";
 import { useWorkManager } from "../hooks/useWorkManager";
+import { useGroupDailySession } from "@/modules/projects/hooks/useGroupDailySession";
+import { GroupDayControl } from "@/modules/projects/components/GroupDayControl";
+import { WorkManagerDayModals } from "../components/WorkManagerDayModals";
 import { WorkManagerOverview } from "../components/WorkManagerOverview";
 import { WorkManagerSessionsTable } from "../components/WorkManagerSessionsTable";
 
 export function WorkManagerScreen() {
   const { state, actions } = useWorkManager();
+  const daily = useGroupDailySession(state.selectedGroupId);
 
   return (
     <div className="w-full space-y-6">
@@ -21,7 +25,7 @@ export function WorkManagerScreen() {
           <div>
             <h2 className="text-2xl font-black tracking-tight">Supervisión en Vivo: WorkManager</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Control operativo, antifraude y monitoreo de marcaciones en tiempo real
+              Control operativo, jornada del día, descansos y monitoreo en tiempo real
             </p>
           </div>
         </div>
@@ -45,7 +49,9 @@ export function WorkManagerScreen() {
           <Button
             variant="outline"
             size="sm"
-            onClick={actions.refresh}
+            onClick={() => {
+              actions.refresh();
+            }}
             disabled={state.isLoading}
             className="gap-1.5 text-xs h-9"
           >
@@ -54,6 +60,19 @@ export function WorkManagerScreen() {
           </Button>
         </div>
       </div>
+
+      {state.selectedGroupId && (
+        <GroupDayControl
+          dailySession={daily.dailySession}
+          isLoading={daily.isLoading}
+          isStarting={daily.isStarting}
+          isResettingDay={daily.isResettingDay}
+          onRequestStartDay={() => daily.setIsStartDayModalOpen(true)}
+          onRequestBreak={() => daily.setIsBreakModalOpen(true)}
+          onRequestFinalize={() => daily.setIsFinalizeConfirmOpen(true)}
+          onRequestResetDay={() => daily.setIsResetDayConfirmOpen(true)}
+        />
+      )}
 
       {state.liveData && <WorkManagerOverview data={state.liveData} />}
 
@@ -84,6 +103,8 @@ export function WorkManagerScreen() {
           )}
         </DynamicCard>
       </div>
+
+      <WorkManagerDayModals daily={daily} onActionComplete={actions.refresh} />
     </div>
   );
 }
