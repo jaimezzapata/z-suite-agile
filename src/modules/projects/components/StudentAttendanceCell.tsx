@@ -1,5 +1,6 @@
 import React from "react";
 import { Clock, Coffee, AlertCircle, CheckCircle2 } from "lucide-react";
+import { evaluateSessionPenalty } from "@/modules/student/lib/penalties";
 import type { WorkSession } from "../types";
 
 interface StudentAttendanceCellProps {
@@ -68,27 +69,34 @@ export function StudentDelayBadge({ session }: StudentAttendanceCellProps) {
     return <span className="text-xs text-muted-foreground italic">--</span>;
   }
 
+  const penalty = evaluateSessionPenalty(session as any);
   const totalRetraso = Number(session.retraso_minutos ?? 0);
 
-  if (totalRetraso === 0) {
+  if (totalRetraso === 0 && !penalty.tienePenalizacion) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-        <CheckCircle2 size={12} /> 0 min
+        <CheckCircle2 size={12} /> 0 min (Puntual)
       </span>
     );
   }
 
-  if (totalRetraso <= 15) {
+  if (penalty.tienePenalizacion) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-        <Clock size={12} /> +{totalRetraso} min
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-destructive/10 text-destructive border border-destructive/20"
+        title={penalty.motivo}
+      >
+        <AlertCircle size={12} /> -0.2 pts ({totalRetraso}m)
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-destructive/10 text-destructive border border-destructive/20" title="Excede los 15 minutos de tolerancia">
-      <AlertCircle size={12} /> +{totalRetraso} min (Penalizado)
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+      title="Retraso leve dentro de tolerancia (sin penalización)"
+    >
+      <Clock size={12} /> +{totalRetraso} min (Tolerado)
     </span>
   );
 }

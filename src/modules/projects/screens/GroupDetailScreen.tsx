@@ -24,7 +24,7 @@ export function GroupDetailScreen({ group, students }: GroupDetailScreenProps) {
   const projects = useGroupProjects(group.id);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <GroupDetailHeader
         group={group}
         pattern={pattern}

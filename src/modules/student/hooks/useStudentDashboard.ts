@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { createClient } from "@/modules/core/lib/supabase/client";
 import { getStudentDashboardData } from "../actions/student-dashboard-actions";
 import { getCurrentWorkSession, startWorkday, endBreak } from "../actions/work-actions";
+import type { AttendancePenaltiesSummary } from "../lib/penalties";
 
 export function useStudentDashboard() {
   const [studentData, setStudentData] = useState<{
@@ -11,6 +12,7 @@ export function useStudentDashboard() {
     avatar_url: string | null;
     projectName: string;
     groupName: string;
+    penaltiesSummary?: AttendancePenaltiesSummary;
   } | null>(null);
   
   const [workSession, setWorkSession] = useState<any>(null);
@@ -19,6 +21,7 @@ export function useStudentDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [isGradeBreakdownOpen, setIsGradeBreakdownOpen] = useState(false);
 
   const loadWorkSession = useCallback(async () => {
     const wsResult = await getCurrentWorkSession();
@@ -53,7 +56,7 @@ export function useStudentDashboard() {
         loadAll();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'work_sessions' }, () => {
-        loadWorkSession();
+        loadAll();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_daily_sessions' }, () => {
         loadWorkSession();
@@ -98,11 +101,14 @@ export function useStudentDashboard() {
       isLoading,
       isActionLoading,
       showTermsModal,
+      isGradeBreakdownOpen,
     },
     actions: {
       setShowTermsModal,
+      setIsGradeBreakdownOpen,
       handleStartWorkday,
       handleEndBreak,
+      refresh: loadAll,
     }
   };
 }
