@@ -17,6 +17,8 @@ export function useGroupDetail(group: groups, initialStudents: profiles[]) {
   const [idToReset, setIdToReset] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any | null>(null);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messagingStudent, setMessagingStudent] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -120,6 +122,7 @@ export function useGroupDetail(group: groups, initialStudents: profiles[]) {
     state: {
       activeTab, isImportModalOpen, selectedIds, isDeleting, isConfirmOpen,
       idsToDelete, isResetting, isResetConfirmOpen, isEditModalOpen, editingStudent,
+      isMessageModalOpen, messagingStudent,
       searchTerm, currentPage, totalPages, paginatedStudents, filteredStudents, studentsCount: students.length
     },
     actions: {
@@ -131,6 +134,8 @@ export function useGroupDetail(group: groups, initialStudents: profiles[]) {
       executeReset,
       requestEdit: (student: any) => { setEditingStudent(student); setIsEditModalOpen(true); },
       closeEditModal: () => { setIsEditModalOpen(false); setEditingStudent(null); },
+      requestMessage: (student: any) => { setMessagingStudent(student); setIsMessageModalOpen(true); },
+      closeMessageModal: () => { setIsMessageModalOpen(false); setMessagingStudent(null); },
       refreshStudents,
     }
   };

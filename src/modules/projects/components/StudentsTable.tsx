@@ -1,5 +1,5 @@
 import { Button } from "@/modules/core/components/ui/Button";
-import { Trash2, RotateCcw, Pencil } from "lucide-react";
+import { Trash2, RotateCcw, Pencil, MessageSquare } from "lucide-react";
 import { useDesignPattern } from "@/modules/core/contexts/DesignPatternProvider";
 import { StudentAttendanceCell, StudentDelayBadge } from "./StudentAttendanceCell";
 import type { StudentProfile } from "@/modules/projects/types";
@@ -14,6 +14,7 @@ interface StudentsTableProps {
   onRequestDelete: (ids: string[]) => void;
   onRequestReset: (id: string) => void;
   onRequestEdit: (student: StudentProfile) => void;
+  onRequestMessage?: (student: StudentProfile) => void;
   allSelected: boolean;
 }
 
@@ -27,6 +28,7 @@ export function StudentsTable({
   onRequestDelete,
   onRequestReset,
   onRequestEdit,
+  onRequestMessage,
   allSelected,
 }: StudentsTableProps) {
   const { pattern } = useDesignPattern();
@@ -95,34 +97,19 @@ export function StudentsTable({
                 <td className="px-6 py-4">
                   <StudentDelayBadge session={latestSession} />
                 </td>
-                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                  <Button 
-                    variant={isNeu ? "neumorphic" : "ghost"} 
-                    size="sm" 
-                    className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-primary" : "text-muted-foreground hover:text-primary"}
-                    title="Editar Estudiante"
-                    onClick={() => onRequestEdit(student)}
-                    disabled={isResetting || isDeleting}
-                  >
+                <td className="px-6 py-4 text-right flex justify-end gap-1">
+                  {onRequestMessage && (
+                    <Button variant={isNeu ? "neumorphic" : "ghost"} size="sm" className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-blue-500" : "text-muted-foreground hover:text-blue-500"} title="Enviar Mensaje" onClick={() => onRequestMessage(student)} disabled={isResetting || isDeleting}>
+                      <MessageSquare size={16} />
+                    </Button>
+                  )}
+                  <Button variant={isNeu ? "neumorphic" : "ghost"} size="sm" className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-primary" : "text-muted-foreground hover:text-primary"} title="Editar Estudiante" onClick={() => onRequestEdit(student)} disabled={isResetting || isDeleting}>
                     <Pencil size={16} />
                   </Button>
-                  <Button 
-                    variant={isNeu ? "neumorphic" : "ghost"} 
-                    size="sm" 
-                    className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-amber-500" : "text-muted-foreground hover:text-amber-500"}
-                    title="Restablecer de Fábrica"
-                    onClick={() => onRequestReset(student.id)}
-                    disabled={isResetting || isDeleting}
-                  >
+                  <Button variant={isNeu ? "neumorphic" : "ghost"} size="sm" className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-amber-500" : "text-muted-foreground hover:text-amber-500"} title="Restablecer de Fábrica" onClick={() => onRequestReset(student.id)} disabled={isResetting || isDeleting}>
                     <RotateCcw size={16} />
                   </Button>
-                  <Button 
-                    variant={isNeu ? "neumorphic" : "ghost"} 
-                    size="sm" 
-                    className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-destructive" : "text-muted-foreground hover:text-destructive"}
-                    onClick={() => onRequestDelete([student.id])}
-                    disabled={isDeleting || isResetting}
-                  >
+                  <Button variant={isNeu ? "neumorphic" : "ghost"} size="sm" className={isNeu ? "h-8 w-8 p-0 rounded-lg text-foreground hover:text-destructive" : "text-muted-foreground hover:text-destructive"} onClick={() => onRequestDelete([student.id])} disabled={isDeleting || isResetting}>
                     <Trash2 size={16} />
                   </Button>
                 </td>

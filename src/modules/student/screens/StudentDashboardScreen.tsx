@@ -8,10 +8,13 @@ import { Button } from "@/modules/core/components/ui/Button";
 import { Skeleton } from "@/modules/core/components/ui/Skeleton";
 import { TermsModal } from "../components/TermsModal";
 import { useStudentDashboard } from "../hooks/useStudentDashboard";
+import { useStudentMessages } from "../hooks/useStudentMessages";
+import { StudentMessagesModal } from "../components/StudentMessagesModal";
 import { StudentWorkPanel } from "../components/StudentWorkPanel";
 
 export function StudentDashboardScreen() {
   const { state, actions } = useStudentDashboard();
+  const messages = useStudentMessages();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -84,8 +87,17 @@ export function StudentDashboardScreen() {
                 <TrendingUp className="text-green-500" size={20} />
               </div>
             </div>
-            <Button variant="outline" className="flex-1 md:flex-none gap-2 h-full">
-              <Mail size={18} /> Mensajes <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5 ml-1">2</span>
+            <Button
+              variant="outline"
+              onClick={messages.actions.openMessagesModal}
+              className="flex-1 md:flex-none gap-2 h-full relative"
+            >
+              <Mail size={18} /> Mensajes
+              {messages.state.unreadCount > 0 ? (
+                <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5 ml-1 font-bold">
+                  {messages.state.unreadCount}
+                </span>
+              ) : null}
             </Button>
           </div>
         </motion.div>
@@ -101,6 +113,14 @@ export function StudentDashboardScreen() {
           />
         </motion.div>
       </motion.div>
+
+      <StudentMessagesModal
+        isOpen={messages.state.isModalOpen}
+        onClose={messages.actions.closeMessagesModal}
+        messages={messages.state.messages}
+        onMarkAsRead={messages.actions.handleMarkAsRead}
+        isLoading={messages.state.isLoading}
+      />
     </>
   );
 }

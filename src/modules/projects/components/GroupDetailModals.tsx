@@ -5,6 +5,7 @@ import { ImportStudentsModal } from "./ImportStudentsModal";
 import { EditStudentModal } from "./EditStudentModal";
 import { StartDayModal } from "./StartDayModal";
 import { SendBreakModal } from "./SendBreakModal";
+import { StudentMessageModal } from "./StudentMessageModal";
 import { ConfirmDialog } from "@/modules/core/components/ui/ConfirmDialog";
 
 interface GroupDetailModalsProps {
@@ -18,6 +19,8 @@ interface GroupDetailModalsProps {
     isResetting: boolean;
     isEditModalOpen: boolean;
     editingStudent: any | null;
+    isMessageModalOpen: boolean;
+    messagingStudent: any | null;
   };
   actions: {
     setIsImportModalOpen: (open: boolean) => void;
@@ -26,6 +29,7 @@ interface GroupDetailModalsProps {
     executeReset: () => void;
     setIsResetConfirmOpen: (open: boolean) => void;
     closeEditModal: () => void;
+    closeMessageModal: () => void;
     refreshStudents: () => Promise<void>;
   };
   daily: {
@@ -73,6 +77,12 @@ export function GroupDetailModals({ groupId, state, actions, daily }: GroupDetai
         student={state.editingStudent}
         onClose={actions.closeEditModal}
         onSuccess={actions.refreshStudents}
+      />
+      <StudentMessageModal
+        isOpen={state.isMessageModalOpen}
+        student={state.messagingStudent}
+        onClose={actions.closeMessageModal}
+        groupId={groupId}
       />
       <ConfirmDialog
         isOpen={state.isConfirmOpen}

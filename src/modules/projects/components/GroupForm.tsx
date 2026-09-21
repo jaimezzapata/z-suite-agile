@@ -2,26 +2,49 @@
 
 import * as React from "react";
 import { Button } from "@/modules/core/components/ui/Button";
-import { CreateGroupInput } from "../actions/project-actions";
+import type { UpdateGroupInput } from "../types/group-types";
 
 interface GroupFormProps {
-  onSubmit: (data: CreateGroupInput) => void;
+  initialData?: Partial<UpdateGroupInput>;
+  onSubmit: (data: any) => void;
   isLoading: boolean;
   onCancel: () => void;
+  submitLabel?: string;
+  isEditing?: boolean;
 }
 
-export function GroupForm({ onSubmit, isLoading, onCancel }: GroupFormProps) {
-  const [nombre, setNombre] = React.useState("");
-  const [descripcion, setDescripcion] = React.useState("");
-  const [usaAsistencia, setUsaAsistencia] = React.useState(false);
-  const [usaKanban, setUsaKanban] = React.useState(false);
-  const [usaEvaluacion, setUsaEvaluacion] = React.useState(false);
+export function GroupForm({
+  initialData,
+  onSubmit,
+  isLoading,
+  onCancel,
+  submitLabel,
+  isEditing = false,
+}: GroupFormProps) {
+  const [nombre, setNombre] = React.useState(initialData?.nombre || "");
+  const [descripcion, setDescripcion] = React.useState(initialData?.descripcion || "");
+  const [estado, setEstado] = React.useState(initialData?.estado || "activo");
+  const [usaAsistencia, setUsaAsistencia] = React.useState(initialData?.usa_asistencia ?? false);
+  const [usaKanban, setUsaKanban] = React.useState(initialData?.usa_kanban ?? false);
+  const [usaEvaluacion, setUsaEvaluacion] = React.useState(initialData?.usa_evaluacion ?? false);
+
+  React.useEffect(() => {
+    if (initialData) {
+      setNombre(initialData.nombre || "");
+      setDescripcion(initialData.descripcion || "");
+      setEstado(initialData.estado || "activo");
+      setUsaAsistencia(initialData.usa_asistencia ?? false);
+      setUsaKanban(initialData.usa_kanban ?? false);
+      setUsaEvaluacion(initialData.usa_evaluacion ?? false);
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       nombre,
       descripcion,
+      estado,
       usa_asistencia: usaAsistencia,
       usa_kanban: usaKanban,
       usa_evaluacion: usaEvaluacion,
@@ -47,13 +70,27 @@ export function GroupForm({ onSubmit, isLoading, onCancel }: GroupFormProps) {
         <textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
-          className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm min-h-[70px] focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="Ej: Grupo de la mañana, ciclo 3..."
         />
       </div>
 
-      <div className="space-y-3 mt-2 border-t border-border pt-4">
-        <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Módulos Activos (Feature Flags)</h4>
+      {isEditing && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Estado</label>
+          <select
+            value={estado}
+            onChange={(e) => setEstado(e.target.value)}
+            className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+      )}
+
+      <div className="space-y-3 mt-1 border-t border-border pt-3">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Módulos Activos (Feature Flags)</h4>
         
         <label className="flex items-center justify-between cursor-pointer group">
           <div className="flex flex-col">
@@ -71,7 +108,7 @@ export function GroupForm({ onSubmit, isLoading, onCancel }: GroupFormProps) {
         <label className="flex items-center justify-between cursor-pointer group">
           <div className="flex flex-col">
             <span className="font-semibold text-sm group-hover:text-primary transition-colors">Kanban (Auditoría QA)</span>
-            <span className="text-xs text-muted-foreground">Historias de usuario y penalizaciones por reincidencia.</span>
+            <span className="text-xs text-muted-foreground">Historias de usuario y penalizaciones.</span>
           </div>
           <input 
             type="checkbox" 
@@ -84,7 +121,7 @@ export function GroupForm({ onSubmit, isLoading, onCancel }: GroupFormProps) {
         <label className="flex items-center justify-between cursor-pointer group">
           <div className="flex flex-col">
             <span className="font-semibold text-sm group-hover:text-primary transition-colors">Motor de Evaluación</span>
-            <span className="text-xs text-muted-foreground">Cálculo del 70% individual y 30% grupal automático.</span>
+            <span className="text-xs text-muted-foreground">Cálculo 70% individual y 30% grupal automático.</span>
           </div>
           <input 
             type="checkbox" 
@@ -95,12 +132,12 @@ export function GroupForm({ onSubmit, isLoading, onCancel }: GroupFormProps) {
         </label>
       </div>
 
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
+      <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isLoading}>
           Cancelar
         </Button>
         <Button type="submit" variant="solid" disabled={isLoading || !nombre.trim()}>
-          {isLoading ? "Creando..." : "Crear Grupo"}
+          {isLoading ? "Guardando..." : submitLabel || (isEditing ? "Guardar Cambios" : "Crear Grupo")}
         </Button>
       </div>
     </form>
