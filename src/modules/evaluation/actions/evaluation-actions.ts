@@ -80,6 +80,7 @@ export async function getGroupEvaluationMetrics(groupId: string): Promise<{ succ
       const puntosDescontados = Number((penaltiesSummary.puntosDescontados + qaPenaltiesCount * 0.2).toFixed(1));
       const notaEstimada = Math.max(0, Number((5.0 - puntosDescontados).toFixed(1)));
 
+      const evalBySessionId = new Map(penaltiesSummary.todasLasSesiones.map((ev) => [ev.sessionId, ev]));
       const auditSessions: StudentSessionAuditItem[] = userSessions.map((s) => ({
         id: s.id,
         fecha: s.ingreso_jornada_at ? s.ingreso_jornada_at.toISOString().slice(0, 10) : "N/A",
@@ -89,7 +90,7 @@ export async function getGroupEvaluationMetrics(groupId: string): Promise<{ succ
         horaFinBreak: s.regreso_break_at ? new Date(s.regreso_break_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : undefined,
         retrasoBreak: s.retraso_break_minutos || 0,
         totalRetraso: s.retraso_minutos || 0,
-        evaluation: evaluateSessionPenalty(s as any),
+        evaluation: evalBySessionId.get(s.id) || evaluateSessionPenalty(s as any),
       }));
 
       const auditQA = userQA.map((r) => ({

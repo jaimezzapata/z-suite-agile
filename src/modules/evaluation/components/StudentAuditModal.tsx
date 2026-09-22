@@ -36,18 +36,24 @@ export function StudentAuditModal({ student, onClose }: StudentAuditModalProps) 
         </div>
 
         <div className="p-5 overflow-y-auto space-y-4">
-          <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-secondary/30 border border-border text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-secondary/30 border border-border text-center">
             <div>
               <p className="text-[11px] text-muted-foreground uppercase font-bold">Nota Individual</p>
               <p className="text-2xl font-black text-primary mt-0.5">{student.notaEstimada.toFixed(1)} / 5.0</p>
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground uppercase font-bold">Faltas Acumuladas</p>
+              <p className="text-[11px] text-muted-foreground uppercase font-bold">Faltas Totales</p>
               <p className="text-2xl font-black text-destructive mt-0.5">{student.totalPenalizaciones}</p>
             </div>
             <div>
               <p className="text-[11px] text-muted-foreground uppercase font-bold">Puntos Restados</p>
               <p className="text-2xl font-black text-amber-500 mt-0.5">-{student.puntosDescontados.toFixed(1)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground uppercase font-bold">Comodín Gracia</p>
+              <p className={`text-base font-bold mt-1.5 ${student.penaltiesSummary?.comodinDisponible ? "text-emerald-600 dark:text-emerald-400" : "text-amber-500"}`}>
+                {student.penaltiesSummary?.comodinDisponible ? "Disponible" : "Agotado"}
+              </p>
             </div>
           </div>
 
@@ -63,6 +69,8 @@ export function StudentAuditModal({ student, onClose }: StudentAuditModalProps) 
                   className={`p-3 rounded-xl border transition-all text-xs ${
                     s.evaluation.tienePenalizacion
                       ? "bg-destructive/5 border-destructive/20"
+                      : s.evaluation.comodinUsado
+                      ? "bg-amber-500/5 border-amber-500/20"
                       : "bg-secondary/15 border-border/40"
                   }`}
                 >
@@ -70,7 +78,11 @@ export function StudentAuditModal({ student, onClose }: StudentAuditModalProps) 
                     <span className="font-bold font-mono text-foreground">{s.fecha}</span>
                     {s.evaluation.tienePenalizacion ? (
                       <span className="inline-flex items-center gap-1 font-bold text-destructive px-2 py-0.5 rounded-full bg-destructive/10 border border-destructive/20 text-[11px]">
-                        <AlertCircle size={12} /> -0.2 pts (Asistencia)
+                        <AlertCircle size={12} /> -{s.evaluation.puntosDescontados.toFixed(1)} pts ({s.evaluation.penalizacionesCount} {s.evaluation.penalizacionesCount === 1 ? "falta" : "faltas"})
+                      </span>
+                    ) : s.evaluation.comodinUsado ? (
+                      <span className="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px]">
+                        <ShieldAlert size={12} /> Comodín usado (0.0 pts)
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px]">
@@ -83,6 +95,7 @@ export function StudentAuditModal({ student, onClose }: StudentAuditModalProps) 
                     {s.horaInicioBreak && <span>Break: <strong>{s.horaInicioBreak} → {s.horaFinBreak || "--"}</strong> {s.retrasoBreak > 0 && <b className="text-amber-500">(+{s.retrasoBreak}m)</b>}</span>}
                   </div>
                   {s.evaluation.motivo && <p className="mt-1 text-[11px] text-destructive font-medium">{s.evaluation.motivo}</p>}
+                  {s.evaluation.motivoComodin && <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">{s.evaluation.motivoComodin}</p>}
                 </div>
               ))
             )}

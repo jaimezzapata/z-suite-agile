@@ -53,6 +53,14 @@ export async function startWorkday() {
     if (!dailySession || dailySession.estado === "no_iniciado") return { success: false, error: "La jornada no ha sido habilitada." };
     if (dailySession.estado === "finalizado") return { success: false, error: "La jornada ya ha sido finalizada." };
 
+    const profile = await prisma.profiles.findUnique({
+      where: { id: user.id },
+      select: { terminos_aceptados_at: true },
+    });
+    if (!profile?.terminos_aceptados_at) {
+      return { success: false, error: "Debes aceptar los términos y condiciones antes de registrar tu ingreso." };
+    }
+
     const existing = await prisma.work_sessions.findFirst({ where: { user_id: user.id, created_at: { gte: today } } });
     if (existing) return { success: false, error: "Ya registraste tu ingreso hoy." };
 

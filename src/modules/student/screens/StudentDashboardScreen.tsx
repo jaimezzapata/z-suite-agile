@@ -121,6 +121,7 @@ export function StudentDashboardScreen() {
             isActionLoading={state.isActionLoading}
             onStartWorkday={actions.handleStartWorkday}
             onEndBreak={actions.handleEndBreak}
+            penaltiesSummary={state.studentData?.penaltiesSummary}
           />
         </motion.div>
       </motion.div>
